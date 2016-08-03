@@ -73,14 +73,27 @@ router.post('/tweets', urlencodedParser, function(req, res) {
   var name = req.body.name;
   var content = req.body.content;
   var tweet = tweetBank.add(name, content);
-  console.log("before swig: ");
+  var userid;
+  //console.log("before swig: ");
   
-  
-  swig.renderFile(path.join(__dirname, '../views/_tweet.html'), {tweet: tweet });
-  res.redirect('/');
+  client.query('SELECT users.id FROM users WHERE users.name=$1', [name], function (err, data) {
+
+    userid = data.rows[0].id;
+    console.log("received user id: ", userid);
+
+    client.query('INSERT INTO tweets (userid, content) VALUES ($1, $2)', [userid, content], function (err, data) {
+        /** ... */
+        if (err) console.log(err);
+        res.redirect('/users/'+name);
+
+    });
+  });
+ 
+  //swig.renderFile(path.join(__dirname, '../views/_tweet.html'), {tweet: tweet });
+  // res.redirect('/users/'+name);
 
 
-//we are here
+//we are here 
   
 
 });
